@@ -98,8 +98,8 @@ class ImageWriter(threading.Thread):
 
     def run(self):
         global Stack
-        end=0
-        while end==0:
+        end = 0
+        while end == 0:
             try:
                 if Stack.not_empty:
                     camData = Stack.get()

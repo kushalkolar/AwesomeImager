@@ -32,13 +32,17 @@ class Main(QtWidgets.QWidget):
 
         self.ui.sliderExposure.valueChanged.connect(self.update_preview)
 
-    def update_preview(self):
-        if isinstance(self.preview, LivePreview.Preview):
-#            self.preview.expos_time.put(self.ui.sliderExposure.value() / 1000.0)
-            self.preview.hcam.setPropertyValue("exposure_time", self.ui.sliderExposure.value() / 1000.0)
+    def set_img_seq_save_path(self):
+        path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Image Sequence as', '', '(*.tiff)')
+        if path == '':
+            return
 
-    def set_img_seq_save_path(self, path):
-        pass
+        if path[0].endswith('.tiff') or path[0].endswith('.tif'):
+            path = path[0]
+        else:
+            path = path[0] + '.tiff'
+
+        self.ui.lineEdSavePathImgSeq.setText(path)
 
     def preview_slot(self, ev):
         print(ev)
@@ -52,13 +56,18 @@ class Main(QtWidgets.QWidget):
             self.preview = None
             print('closing preview')
 
+    def update_preview(self):
+        if isinstance(self.preview, LivePreview.Preview):
+            #            self.preview.expos_time.put(self.ui.sliderExposure.value() / 1000.0)
+            self.preview.hcam.setPropertyValue("exposure_time", self.ui.sliderExposure.value() / 1000.0)
+
     def acquire_slot(self, ev):
         if ev:
             m = self.ui.spinBoxMinutesAcquisition.value()
             ms = m * 60
             s = self.ui.spinBoxSecondsAcquisition.value()
             acq_secs = s + ms
-            exp = self.ui.sliderExposure.value()
+            exp = self.ui.sliderExposure.value() / 1000.0
 
             acq_settings = {'duration': acq_secs,
                             'exp':      exp,
@@ -68,9 +77,17 @@ class Main(QtWidgets.QWidget):
             self.ui.btnPreview.setDisabled(True)
             self.ui.btnAcquire.setText('Abort')
 
-        elif not ev:
-            self.ui.btnPreview.setEnabled(True)
-            self.ui.btnAcquire.setText('Acquire')
+
+            WriteImages = ImageStack.ImageWriter(self.ui.lineEdSavePathImgSeq.text())
+            Acquire = ImageStack.GetNextFrame(acq_secs, exp, 0, 0)
+
+            Acquire.start()
+            WriteImages.start()
+
+            self.StopAcquisition()
+
+        self.ui.btnPreview.setEnabled(True)
+        self.ui.btnAcquire.setText('Acquire')
 
     def add_stim(self):
         pass
