@@ -34,21 +34,26 @@ class Main(QtWidgets.QWidget):
 
     def update_preview(self):
         if isinstance(self.preview, LivePreview.Preview):
-            self.preview.expos_time.put(self.ui.sliderExposure.value() / 1000.0)
+#            self.preview.expos_time.put(self.ui.sliderExposure.value() / 1000.0)
+            self.preview.hcam.setPropertyValue("exposure_time", self.ui.sliderExposure.value() / 1000.0)
 
     def set_img_seq_save_path(self, path):
         pass
 
     def preview_slot(self, ev):
-        if not ev:
+        print(ev)
+        if ev:
             exp = self.ui.sliderExposure.value() / 1000.0
             self.preview = LivePreview.Preview(0, exp)
+            self.preview.start()
 
-        elif ev:
+        elif not ev:
+            self.preview.endPreview()
             self.preview = None
+            print('closing preview')
 
     def acquire_slot(self, ev):
-        if not ev:
+        if ev:
             m = self.ui.spinBoxMinutesAcquisition.value()
             ms = m * 60
             s = self.ui.spinBoxSecondsAcquisition.value()
@@ -63,7 +68,7 @@ class Main(QtWidgets.QWidget):
             self.ui.btnPreview.setDisabled(True)
             self.ui.btnAcquire.setText('Abort')
 
-        elif ev:
+        elif not ev:
             self.ui.btnPreview.setEnabled(True)
             self.ui.btnAcquire.setText('Acquire')
 
