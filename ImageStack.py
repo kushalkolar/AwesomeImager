@@ -14,7 +14,7 @@ import sys
 Stack = Queue(maxsize=0)
 
 class GetNextFrame(threading.Thread):
-    def __init__(self, acq_duration, expos_time, focal_start, focal_interval):
+    def __init__(self, acq_duration, expos_time, frame_rate, focal_start, focal_interval):
         threading.Thread.__init__(self) #initialize this class on a new thread for fastest possible capture of stacks
         print " ----------- Starting Acquisition thread ------------- "
         print "--> Initializing Camera Parameters"
@@ -29,6 +29,7 @@ class GetNextFrame(threading.Thread):
         self.hcam.setPropertyValue("subarray_vsize", cam_y)
         self.hcam.setPropertyValue("binning", "1x1")
         self.hcam.setPropertyValue("readout_speed", 2)
+        self.hcam.setPropertyValue("internal_frame_rate", frame_rate)
 
 #        self.cam.set(16, expos_time) # Exposure propID# is 16 Exposure as appropriate for the fluorescence intensity
 #        print "--> Initializing OptoTune Lens"

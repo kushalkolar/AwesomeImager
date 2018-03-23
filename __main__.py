@@ -14,8 +14,9 @@ from __future__ import print_function
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from main_pytemplate import Ui_main
-import LivePreview
-import ImageStack
+# import LivePreview
+# import ImageStack
+from functools import partial
 
 class Main(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -30,7 +31,17 @@ class Main(QtWidgets.QWidget):
         self.ui.btnAddStim.clicked.connect(self.add_stim)
         self.ui.btnDelStim.clicked.connect(self.del_stim)
 
+        self.ui.sliderExposure.valueChanged.connect(self.set_frame_rate_spinBox)
         self.ui.sliderExposure.valueChanged.connect(self.update_preview)
+
+        self.ui.checkBoxMaxFrameRate.clicked.connect(self.set_frame_rate_spinBox)
+
+    def set_frame_rate_spinBox(self, v):
+        if type(v) is bool:
+            v = self.ui.sliderExposure.value()
+        self.ui.spinBoxFrameRate.setMaximum(1000.0 / v)
+        if self.ui.checkBoxMaxFrameRate.isChecked():
+            self.ui.spinBoxFrameRate.setValue(1000.0 / v)
 
     def set_img_seq_save_path(self):
         path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Image Sequence as', '', '(*.tiff)')
@@ -56,10 +67,12 @@ class Main(QtWidgets.QWidget):
             self.preview = None
             print('closing preview')
 
-    def update_preview(self):
+    def update_preview(self, v):
+        if not hasattr(self, 'preview'):
+            return
         if isinstance(self.preview, LivePreview.Preview):
             #            self.preview.expos_time.put(self.ui.sliderExposure.value() / 1000.0)
-            self.preview.hcam.setPropertyValue("exposure_time", self.ui.sliderExposure.value() / 1000.0)
+            self.preview.hcam.setPropertyValue("exposure_time", v/1000.0)
 
     def acquire_slot(self, ev):
         if ev:
@@ -68,6 +81,7 @@ class Main(QtWidgets.QWidget):
             s = self.ui.spinBoxSecondsAcquisition.value()
             acq_secs = s + ms
             exp = self.ui.sliderExposure.value() / 1000.0
+            frame_rate = self.ui.spinBoxFrameRate.value()
             compression = self.ui.sliderCompressionLevel.value()
             acq_settings = {'duration': acq_secs,
                             'exp':      exp,
