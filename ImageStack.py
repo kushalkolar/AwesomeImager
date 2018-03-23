@@ -2,6 +2,7 @@ import threading
 import time
 from Queue import Queue
 import cv2 # Import OpenCV2
+import tifffile
 #from opto import Opto # Import modules provided by optotune
 import hamamatsu_camera as hc
 import os
@@ -94,7 +95,8 @@ class ImageWriter(threading.Thread):
         #fourcc = cv2.VideoWriter_fourcc(*'PIMJ')
         #fps = 5# int(1.0/(expos_time + .014))
         #self.out = cv2.VideoWriter(saveDir + 'out.avi', fourcc, fps, (2048,2048), False)
-        self.buffer = []
+        # self.buffer = []
+        tiff_writer = tifffile.TiffWriter(saveDir, bigtiff=True, append=True)
 
     def run(self):
         global Stack
@@ -105,7 +107,7 @@ class ImageWriter(threading.Thread):
                     camData = Stack.get()
                     print 'Queue size is: ' + str(Stack.qsize())
                     if str(camData) == 'done':
-                        print ' >> ' + str(sys.getsizeof(self.buffer))
+                        # print ' >> ' + str(sys.getsizeof(self.buffer))
                         ##########################################################
                         # >>>>>>>>>> TEST IF SHOWING IMAGES IS CRASHING THE THING
                         ##########################################################
@@ -134,8 +136,9 @@ class ImageWriter(threading.Thread):
 #                            self.hcam.shutdown()
 #                            break
                         #cv2.imwrite(self.saveDir + '%05d.tif' % self.imgNum, imgB)
-                        rval, bufImg = cv2.imencode('.tif', imgB)
-                        self.buffer.append(bufImg)
+                        # rval, bufImg = cv2.imencode('.tif', imgB)
+                        # self.buffer.append(bufImg)
+                        tiff_writer.save(imgB)
                         
                         #self.out.write(colorImg)
                         Stack.task_done()
