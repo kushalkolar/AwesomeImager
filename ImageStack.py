@@ -1,6 +1,7 @@
 import threading
+import multiprocessing
 import time
-from Queue import Queue
+# from Queue import Queue
 import cv2 # Import OpenCV2
 import tifffile
 #from opto import Opto # Import modules provided by optotune
@@ -11,10 +12,10 @@ import sys
 
 #TRY TO REPLACE THREADING WITH PROCESS: http://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread-in-python
 
-Stack = Queue(maxsize=0)
+# Stack = Queue(maxsize=0)
 
 class GetNextFrame(threading.Thread):
-    def __init__(self, acq_duration, expos_time, frame_rate, focal_start, focal_interval):
+    def __init__(self, q, acq_duration, expos_time, frame_rate, focal_start, focal_interval):
         threading.Thread.__init__(self) #initialize this class on a new thread for fastest possible capture of stacks
         print " ----------- Starting Acquisition thread ------------- "
         print "--> Initializing Camera Parameters"
@@ -29,7 +30,8 @@ class GetNextFrame(threading.Thread):
         self.hcam.setPropertyValue("subarray_vsize", cam_y)
         self.hcam.setPropertyValue("binning", "1x1")
         self.hcam.setPropertyValue("readout_speed", 2)
-        self.hcam.setPropertyValue("internal_frame_rate", frame_rate)
+        # self.hcam.setPropertyValue("internal_frame_rate", frame_rate)
+        self.q = q
 
 #        self.cam.set(16, expos_time) # Exposure propID# is 16 Exposure as appropriate for the fluorescence intensity
 #        print "--> Initializing OptoTune Lens"
@@ -47,7 +49,7 @@ class GetNextFrame(threading.Thread):
 
     # This function actually captures the stacks, it has its own thread to run as fast as possible line - to - line
     def run(self):
-        global Stack
+        # global Stack
         print "----> Starting acquisition"
         end = 0
         self.hcam.startAcquisition()
@@ -72,13 +74,27 @@ class GetNextFrame(threading.Thread):
                 ## >>> WHAT IF I JUST KEEP USING THIS FUNCTION BELOW TO GET IMAGES FROM TEH CAMERA????
                 #***************************************************************************
                 grey_values = frame[0].getData()
-                Stack.put(grey_values)
+                self.q.put(grey_values)
                 fNum += 1
+
+
+            #     try:
+            #         img = np.reshape(grey_values, (2048, 2048))
+            #         cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
+            #         cv2.resizeWindow('Preview Window', 1000, 1000)
+            #         cv2.imshow('Preview Window', img)
+            #         if cv2.waitKey(1) & 0xFF == ord('q'):
+            #             self.show = False
+            #             #                stop = time.clock()
+            #             #                print stop - start
+            #     except:
+            #         pass
+            # cv2.destroyAllWindows()
 #            self.lens.close(soft_close=True)
-            Stack.put('done')
+            self.q.put('done')
             self.hcam.stopAcquisition()
             self.hcam.shutdown()
-            
+
         except KeyboardInterrupt:
             end = 1
             raise
@@ -87,9 +103,9 @@ class GetNextFrame(threading.Thread):
             print "------- !! Something went wrong during acquisition, lens set back to rest position !! ---------"
 
 # This class writes frames in the Queue, runs on a seperate thread to not disturb the acquisition of stacks on the other thread
-class ImageWriter(threading.Thread):
-    def __init__(self, saveDir, compression_level):
-        threading.Thread.__init__(self)
+class ImageWriter(multiprocessing.Process):
+    def __init__(self, q, saveDir, compression_level):
+        multiprocessing.Process.__init__(self)
         print " ----------- Starting Image Writer thread -------------"
         self.saveDir = saveDir
         self.imgNum = 0
@@ -99,13 +115,14 @@ class ImageWriter(threading.Thread):
         # self.buffer = []
         self.tiff_writer = tifffile.TiffWriter(saveDir, bigtiff=True, append=True)
         self.compression_level = compression_level
+        self.q = q
     def run(self):
-        global Stack
+        # global Stack
         end = 0
         while end == 0:
             try:
-                if Stack.not_empty:
-                    camData = Stack.get()
+                if self.q.not_empty:
+                    camData = self.q.get()
                     print 'Queue size is: ' + str(Stack.qsize())
                     if str(camData) == 'done':
                         # print ' >> ' + str(sys.getsizeof(self.buffer))
@@ -119,12 +136,23 @@ class ImageWriter(threading.Thread):
                         #self.hcam.shutdown()
                         #self.out.release()
                         self.tiff_writer.close()
+                        cv2.destroyAllWindows()
                         break
                     else:
                         #grey_values = camData[0].getData()
                         #print sys.getsizeof(grey_values)
                         img = np.reshape(camData, (2048, 2048))
                         imgB = (img/256).astype('uint8')
+                        try:
+                            cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
+                            cv2.resizeWindow('Preview Window', 1000, 1000)
+                            cv2.imshow('Preview Window', imgB)
+                            if cv2.waitKey(1) & 0xFF == ord('q'):
+                                pass
+                                #                stop = time.clock()
+                                #                print stop - start
+                        except:
+                            pass
                         #colorImg = imgB# cv2.cvtColor(imgB,cv2.COLOR_GRAY2RGB)
                         ##########################################################
                         # >>>>>>>>>> TEST IF SHOWING IMAGES IS CRASHING THE THING

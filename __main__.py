@@ -17,6 +17,7 @@ from main_pytemplate import Ui_main
 # import LivePreview
 # import ImageStack
 from functools import partial
+from multiprocessing import Queue
 
 class Main(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -91,9 +92,10 @@ class Main(QtWidgets.QWidget):
             self.ui.btnPreview.setDisabled(True)
             self.ui.btnAcquire.setText('Abort')
 
+            q = Queue()
 
-            WriteImages = ImageStack.ImageWriter(self.ui.lineEdSavePathImgSeq.text(), compression)
-            Acquire = ImageStack.GetNextFrame(acq_secs, exp, 0, 0)
+            WriteImages = ImageStack.ImageWriter(q, self.ui.lineEdSavePathImgSeq.text(), compression)
+            Acquire = ImageStack.GetNextFrame(q, acq_secs, exp, 0, 0)
 
             Acquire.start()
             WriteImages.start()
@@ -118,6 +120,7 @@ class Main(QtWidgets.QWidget):
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     win = QtWidgets.QMainWindow()
+    win.setWindowTitle('Awesome Imager')
     gui = Main()
     win.setCentralWidget(gui)
     win.show()
