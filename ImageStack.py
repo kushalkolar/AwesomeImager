@@ -96,7 +96,7 @@ class ImageWriter(threading.Thread):
         #fps = 5# int(1.0/(expos_time + .014))
         #self.out = cv2.VideoWriter(saveDir + 'out.avi', fourcc, fps, (2048,2048), False)
         # self.buffer = []
-        tiff_writer = tifffile.TiffWriter(saveDir, bigtiff=True, append=True)
+        self.tiff_writer = tifffile.TiffWriter(saveDir, bigtiff=True, append=True)
 
     def run(self):
         global Stack
@@ -117,6 +117,7 @@ class ImageWriter(threading.Thread):
                         #self.hcam.stopAcquisition()
                         #self.hcam.shutdown()
                         #self.out.release()
+                        self.tiff_writer.close()
                         break
                     else:
                         #grey_values = camData[0].getData()
@@ -138,7 +139,8 @@ class ImageWriter(threading.Thread):
                         #cv2.imwrite(self.saveDir + '%05d.tif' % self.imgNum, imgB)
                         # rval, bufImg = cv2.imencode('.tif', imgB)
                         # self.buffer.append(bufImg)
-                        tiff_writer.save(imgB)
+                        self.tiff_writer.save(imgB, compress=6)
+                        print 'Wrote frame num: ' + str(self.imgNum)
                         
                         #self.out.write(colorImg)
                         Stack.task_done()
