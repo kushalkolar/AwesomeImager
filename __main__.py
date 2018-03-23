@@ -14,10 +14,10 @@ from __future__ import print_function
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from main_pytemplate import Ui_main
-# import LivePreview
-# import ImageStack
+import LivePreview
+import ImageStack
 from functools import partial
-from multiprocessing import Queue
+import Queue
 
 class Main(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -32,17 +32,7 @@ class Main(QtWidgets.QWidget):
         self.ui.btnAddStim.clicked.connect(self.add_stim)
         self.ui.btnDelStim.clicked.connect(self.del_stim)
 
-        self.ui.sliderExposure.valueChanged.connect(self.set_frame_rate_spinBox)
         self.ui.sliderExposure.valueChanged.connect(self.update_preview)
-
-        self.ui.checkBoxMaxFrameRate.clicked.connect(self.set_frame_rate_spinBox)
-
-    def set_frame_rate_spinBox(self, v):
-        if type(v) is bool:
-            v = self.ui.sliderExposure.value()
-        self.ui.spinBoxFrameRate.setMaximum(1000.0 / v)
-        if self.ui.checkBoxMaxFrameRate.isChecked():
-            self.ui.spinBoxFrameRate.setValue(1000.0 / v)
 
     def set_img_seq_save_path(self):
         path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Image Sequence as', '', '(*.tiff)')
@@ -63,7 +53,7 @@ class Main(QtWidgets.QWidget):
             self.preview = LivePreview.Preview(0, exp)
             self.preview.start()
 
-        elif not ev:
+        else:
             self.preview.endPreview()
             self.preview = None
             print('closing preview')
@@ -77,12 +67,15 @@ class Main(QtWidgets.QWidget):
 
     def acquire_slot(self, ev):
         if ev:
+            if hasattr(self, 'preview'):
+                if isinstance(self.preview, LivePreview.Preview):
+                    self.preview_slot(False)
+
             m = self.ui.spinBoxMinutesAcquisition.value()
             ms = m * 60
             s = self.ui.spinBoxSecondsAcquisition.value()
             acq_secs = s + ms
             exp = self.ui.sliderExposure.value() / 1000.0
-            frame_rate = self.ui.spinBoxFrameRate.value()
             compression = self.ui.sliderCompressionLevel.value()
             acq_settings = {'duration': acq_secs,
                             'exp':      exp,
@@ -92,18 +85,26 @@ class Main(QtWidgets.QWidget):
             self.ui.btnPreview.setDisabled(True)
             self.ui.btnAcquire.setText('Abort')
 
-            q = Queue()
+            q = Queue.Queue()
 
-            WriteImages = ImageStack.ImageWriter(q, self.ui.lineEdSavePathImgSeq.text(), compression)
-            Acquire = ImageStack.GetNextFrame(q, acq_secs, exp, 0, 0)
+            WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression)
+            self.acquisition = ImageStack.GetNextFrame(q, acq_secs, exp, 0, 0)
 
-            Acquire.start()
+            self.acquisition.start()
             WriteImages.start()
 
-            self.StopAcquisition()
+        else:
+            try:
+                self.acquisition.end_acquisition()
+            except:
+                pass
 
-        self.ui.btnPreview.setEnabled(True)
-        self.ui.btnAcquire.setText('Acquire')
+            self.ui.btnPreview.setEnabled(True)
+            self.ui.btnAcquire.setText('Acquire')
+            self.ui.btnAcquire.setChecked(False)
+
+    def set_frames_written_progressBar(self, fnum, qsize):
+        pass
 
     def add_stim(self):
         pass
@@ -120,7 +121,7 @@ class Main(QtWidgets.QWidget):
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     win = QtWidgets.QMainWindow()
-    win.setWindowTitle('Awesome Imager')
+    win.setWindowTitle('Awesome Imager - because the other imager is not awesome')
     gui = Main()
     win.setCentralWidget(gui)
     win.show()
