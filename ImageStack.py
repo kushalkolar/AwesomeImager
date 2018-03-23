@@ -87,7 +87,7 @@ class GetNextFrame(threading.Thread):
 
 # This class writes frames in the Queue, runs on a seperate thread to not disturb the acquisition of stacks on the other thread
 class ImageWriter(threading.Thread):
-    def __init__(self, saveDir):
+    def __init__(self, saveDir, compression_level):
         threading.Thread.__init__(self)
         print " ----------- Starting Image Writer thread -------------"
         self.saveDir = saveDir
@@ -97,7 +97,7 @@ class ImageWriter(threading.Thread):
         #self.out = cv2.VideoWriter(saveDir + 'out.avi', fourcc, fps, (2048,2048), False)
         # self.buffer = []
         self.tiff_writer = tifffile.TiffWriter(saveDir, bigtiff=True, append=True)
-
+        self.compression_level = compression_level
     def run(self):
         global Stack
         end = 0
@@ -139,7 +139,7 @@ class ImageWriter(threading.Thread):
                         #cv2.imwrite(self.saveDir + '%05d.tif' % self.imgNum, imgB)
                         # rval, bufImg = cv2.imencode('.tif', imgB)
                         # self.buffer.append(bufImg)
-                        self.tiff_writer.save(imgB, compress=6)
+                        self.tiff_writer.save(imgB, compress=self.compression_level)
                         print 'Wrote frame num: ' + str(self.imgNum)
                         
                         #self.out.write(colorImg)

@@ -68,7 +68,7 @@ class Main(QtWidgets.QWidget):
             s = self.ui.spinBoxSecondsAcquisition.value()
             acq_secs = s + ms
             exp = self.ui.sliderExposure.value() / 1000.0
-
+            compression = self.ui.sliderCompressionLevel.value()
             acq_settings = {'duration': acq_secs,
                             'exp':      exp,
                             'stims':    {},
@@ -78,7 +78,7 @@ class Main(QtWidgets.QWidget):
             self.ui.btnAcquire.setText('Abort')
 
 
-            WriteImages = ImageStack.ImageWriter(self.ui.lineEdSavePathImgSeq.text())
+            WriteImages = ImageStack.ImageWriter(self.ui.lineEdSavePathImgSeq.text(), compression)
             Acquire = ImageStack.GetNextFrame(acq_secs, exp, 0, 0)
 
             Acquire.start()
