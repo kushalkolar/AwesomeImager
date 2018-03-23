@@ -82,6 +82,7 @@ class Main(QtWidgets.QWidget):
                             'stims':    {},
                             }
 
+            self.ui.progressBarWriter.setMaximum(int((acq_secs * 1000) / self.ui.sliderExposure.value()) - 1)
             self.ui.btnPreview.setDisabled(True)
             self.ui.btnAcquire.setText('Abort')
 
@@ -89,9 +90,9 @@ class Main(QtWidgets.QWidget):
 
             WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression)
             self.acquisition = ImageStack.GetNextFrame(q, acq_secs, exp, 0, 0)
-
             self.acquisition.start()
             WriteImages.start()
+
 
         else:
             try:
@@ -104,7 +105,8 @@ class Main(QtWidgets.QWidget):
             self.ui.btnAcquire.setChecked(False)
 
     def set_frames_written_progressBar(self, fnum, qsize):
-        pass
+        self.ui.progressBarAcquisition.setValue(fnum)
+        self.ui.labelQsize.setText(str(qsize))
 
     def add_stim(self):
         pass
