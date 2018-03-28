@@ -11,6 +11,7 @@ import numpy as np
 import sys
 import json
 import datetime
+import pyqtgraph as pg
 
 class GetNextFrame(threading.Thread):
     def __init__(self, q, acq_duration, expos_time, focal_start, focal_interval):
@@ -79,7 +80,7 @@ class GetNextFrame(threading.Thread):
 
 
 class ImageWriter(threading.Thread):
-    def __init__(self, q, parent, saveDir, compression_level, exp, brightness, gamma):
+    def __init__(self, q, parent, saveDir, compression_level, exp, levels):
         threading.Thread.__init__(self)
         print " ----------- Starting Image Writer Process -------------"
         self.saveDir = saveDir
@@ -89,20 +90,40 @@ class ImageWriter(threading.Thread):
         self.q = q
         self.parent = parent
         self.exp = exp
-        self.brightness = brightness
-        self.gamma = gamma
-
-    def adjust_gamma(self, img):
-        if self.gamma == 0.0:
-            return img
+        self.levels = levels
+        self.iv = pg.imageview.ImageView()
         
-        invGamma = 1.0 / self.gamma
-        table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype(np.uint8)
-
-        return cv2.LUT(img, table)
+        colors = [
+                (0, 0, 0),
+                (7, 0, 220),
+                (236, 0, 134),
+                (246, 246, 0),
+                (255, 255, 255),
+                (0, 255, 0)
+                ]
+#        
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
+        self.iv.setColorMap(cmap)
+        self.iv.setLevels(self.levels[0], self.levels[1])
+        hist = self.iv.getHistogramWidget()
+        hist.vb.enableAutoRange(hist.vb.YAxis, False)
+        self.iv.show()
+        
+    def display(self, image):
+        image.clip(self.levels[0], self.levels[1], out=image)
+        image -= self.levels[0]
+        np.floor_divide(image, (self.levels[1] - self.levels[0] + 1) / 256,
+                        out=image, casting='unsafe')
+        return image.astype(np.uint8)
+    
+    def set_lut(self, image) :
+        lut = np.arange(2**16, dtype='uint16')
+        lut = self.display(lut)
+        return np.take(lut, image).astype(np.uint8)
 
     def run(self):
         print 'Running Image Writer process'
+        first_img = True
         while True:
             try:
                 if self.q.not_empty:
@@ -114,24 +135,13 @@ class ImageWriter(threading.Thread):
 
                     else:
                         img = np.reshape(camData, (2048, 2048))
-                        imgB = (img/255).astype(np.uint8)
-
                         try:
-                            cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
-                            cv2.resizeWindow('Preview Window', 1000, 1000)
-
-                            if self.brightness != 0:
-                                img += self.brightness
-                            imgB = self.adjust_gamma(imgB)
-
-                            # cv2.imshow('Preview Window', cv2.equalizeHist(imgB))
-                            if cv2.waitKey(1) & 0xFF == ord('q'):
-                                pass
-
+                            self.iv.setImage(img, autoRange=False, autoLevels=False, autoHistogramRange=False, levels=self.levels)
                         except:
                             pass
 
-                        self.tiff_writer.save(imgB, compress=self.compression_level)
+                        img = self.set_lut(img)
+                        self.tiff_writer.save(img, compress=self.compression_level)
                         print 'qsize is: ' + str(self.q.qsize())
                         print 'wrote ImgNum: ' + str(self.imgNum)
 #                        self.parent.set_frames_written_progressBar(self.imgNum, self.q.qsize())

@@ -18,6 +18,7 @@ import LivePreview
 import ImageStack
 from functools import partial
 import Queue
+import numpy as np
 
 class Main(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -31,11 +32,8 @@ class Main(QtWidgets.QWidget):
         self.ui.btnAcquire.clicked.connect(self.acquire_slot)
         self.ui.btnAddStim.clicked.connect(self.add_stim)
         self.ui.btnDelStim.clicked.connect(self.del_stim)
-
+        
         self.ui.sliderExposure.valueChanged.connect(self.update_preview)
-        self.ui.sliderBrightness.valueChanged.connect(self.update_preview)
-        self.ui.sliderGamma.valueChanged.connect(self.update_preview)
-        self.ui.sliderContrast.valueChanged.connect(self.update_preview())
 
         try:
             from subprocess import Popen, PIPE
@@ -65,33 +63,26 @@ class Main(QtWidgets.QWidget):
         if ev:
             exp = self.ui.sliderExposure.value() / 1000.0
 
-            b = self.ui.sliderBrightness.value()
-            g = self.ui.sliderGamma.value() / 10.0
-            c = self.ui.sliderContrast.value()
-
-            self.ui.labelGamma.setText(str(g))
-
-            self.preview = LivePreview.Preview(0, exp, b, g, c)
+            self.preview = LivePreview.Preview(0, exp)
             self.preview.start()
 
         else:
+            self.levels = self.preview.levels
+            print(self.levels)
+            
+            mi = np.uint16(self.levels[0])
+            mx = np.uint16(self.levels[1])
+            self.levels = (mi, mx)
+            print(type(self.levels[1]))
             self.preview.endPreview()
+            self.preview.iv.close()
             self.preview = None
             print('closing preview')
 
     def update_preview(self, v):
         if not hasattr(self, 'preview'):
             return
-        if isinstance(self.preview, LivePreview.Preview):
-            b = self.ui.sliderBrightness.value()
-            g = self.ui.sliderGamma.value() / 10.0
-            c = self.ui.sliderContrast.value()
-            self.ui.labelGamma.setText(str(g))
-            
-            self.preview.brightness = b
-            self.preview.gamma = g
-            self.preview.contrast = c
-            
+        if isinstance(self.preview, LivePreview.Preview):            
             self.preview.hcam.setPropertyValue("exposure_time", v/1000.0)
 
     def acquire_slot(self, ev):
@@ -112,8 +103,6 @@ class Main(QtWidgets.QWidget):
             s = self.ui.spinBoxSecondsAcquisition.value()
             acq_secs = s + ms
             exp = self.ui.sliderExposure.value() / 1000.0
-            b = self.ui.sliderBrightness.value()
-            g = self.ui.sliderGamma.value() / 10.0
 
             compression = self.ui.sliderCompressionLevel.value()
             acq_settings = {'duration': acq_secs,
@@ -127,11 +116,10 @@ class Main(QtWidgets.QWidget):
 
             q = Queue.Queue()
 
-            WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression, exp, b, g)
+            WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression, exp, self.levels)
             self.acquisition = ImageStack.GetNextFrame(q, acq_secs, exp, 0, 0)
             self.acquisition.start()
             WriteImages.start()
-
 
         else:
             try:
