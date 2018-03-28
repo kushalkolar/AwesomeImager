@@ -9,6 +9,7 @@ import hamamatsu_camera as hc
 import os
 import numpy as np
 import sys
+import json
 
 
 class GetNextFrame(threading.Thread):
@@ -78,7 +79,7 @@ class GetNextFrame(threading.Thread):
 
 
 class ImageWriter(threading.Thread):
-    def __init__(self, q, parent, saveDir, compression_level):
+    def __init__(self, q, parent, saveDir, compression_level, exp):
         threading.Thread.__init__(self)
         print " ----------- Starting Image Writer Process -------------"
         self.saveDir = saveDir
@@ -93,23 +94,26 @@ class ImageWriter(threading.Thread):
         while True:
             try:
                 if self.q.not_empty:
+
                     camData = self.q.get()
+
                     if str(camData) == 'done':
-                        self.tiff_writer.close()
-                        cv2.destroyAllWindows()
-                        self.parent.acquire_slot(False)
                         break
+
                     else:
                         img = np.reshape(camData, (2048, 2048))
                         imgB = (img/256).astype('uint8')
+
                         try:
                             cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
                             cv2.resizeWindow('Preview Window', 1000, 1000)
                             cv2.imshow('Preview Window', imgB)
                             if cv2.waitKey(1) & 0xFF == ord('q'):
                                 pass
+
                         except:
                             pass
+
                         self.tiff_writer.save(imgB, compress=self.compression_level)
                         self.parent.set_frames_written_progressBar(self.imgNum, self.q.qsize())
                         
@@ -118,6 +122,27 @@ class ImageWriter(threading.Thread):
 
             except KeyboardInterrupt:
                 break
+        self.tiff_writer.close()
+        cv2.destroyAllWindows()
+        self.parent.acquire_slot(False)
+
+        date = datetime.datetime.fromtimestamp(time.time())
+        ymd = date.strftime('%Y%m%d')
+        hms = date.strftime('%H%M%S')
+
+        metadata = {'exposure': exp,
+                    'focal_length': None,
+                    'source': 'AwesomeImager',
+                    'version': self.parent.__version__,
+                    'date': ymd,
+                    'time': hms,
+                    'stims': None}
+        if saveDir.endswith('.tiff'):
+            json_file = saveDir[:-5] + '.json'
+        elif saveDir.endswith('.tif'):
+            json_file = saveDir[:-4 + '.json']
+        with open(json_file, 'w') as f:
+            json.dump(metadata, f)
 
 
 if __name__ == '__main__':

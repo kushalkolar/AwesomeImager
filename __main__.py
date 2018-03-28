@@ -34,6 +34,15 @@ class Main(QtWidgets.QWidget):
 
         self.ui.sliderExposure.valueChanged.connect(self.update_preview)
 
+        try:
+            from subprocess import Popen, PIPE
+            gitproc = Popen(['git', 'rev-parse', 'HEAD'], stdout=PIPE)
+            (stdout, _) = gitproc.communicate()
+            self.__version__ = stdout.strip().decode()
+        except:
+            self.__version__ = 'unknown'
+
+
     def set_img_seq_save_path(self):
         path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Image Sequence as', '', '(*.tiff)')
         if path == '':
@@ -67,6 +76,11 @@ class Main(QtWidgets.QWidget):
 
     def acquire_slot(self, ev):
         if ev:
+            if (not self.ui.lineEdSavePathImgSeq.text().endswith('.tiff')) or \
+                    (not self.ui.lineEdSavePathImgSeq.text().endswith('.tif')):
+
+                QtWidgets.QMessageBox.warning(self, 'Invalid extension', 'Your must save your file with either an'
+                                                                         ' .tiff or .tif extension!')
             if hasattr(self, 'preview'):
                 if isinstance(self.preview, LivePreview.Preview):
                     self.preview_slot(False)
@@ -88,7 +102,7 @@ class Main(QtWidgets.QWidget):
 
             q = Queue.Queue()
 
-            WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression)
+            WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression, exp)
             self.acquisition = ImageStack.GetNextFrame(q, acq_secs, exp, 0, 0)
             self.acquisition.start()
             WriteImages.start()

@@ -206,6 +206,9 @@
       <string>Stimuli</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_8">
+      <item row="0" column="0" rowspan="2">
+       <widget class="QListWidget" name="listWidget"/>
+      </item>
       <item row="0" column="1">
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
@@ -303,16 +306,6 @@
          </layout>
         </item>
        </layout>
-      </item>
-      <item row="0" column="0" rowspan="2">
-       <widget class="QColumnView" name="columnView">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>1</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
       </item>
       <item row="1" column="1">
        <spacer name="verticalSpacer_4">
