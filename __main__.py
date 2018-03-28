@@ -61,7 +61,13 @@ class Main(QtWidgets.QWidget):
         print(ev)
         if ev:
             exp = self.ui.sliderExposure.value() / 1000.0
-            self.preview = LivePreview.Preview(0, exp)
+
+            b = self.ui.sliderBrightness.value()
+            g = self.ui.sliderGamma.value() / 10.0
+
+            self.ui.labelGamma.setText(str(g))
+
+            self.preview = LivePreview.Preview(0, exp, b, g)
             self.preview.start()
 
         else:
@@ -94,6 +100,9 @@ class Main(QtWidgets.QWidget):
             s = self.ui.spinBoxSecondsAcquisition.value()
             acq_secs = s + ms
             exp = self.ui.sliderExposure.value() / 1000.0
+            b = self.ui.sliderBrightness.value()
+            g = self.ui.sliderGamma.value() / 10.0
+
             compression = self.ui.sliderCompressionLevel.value()
             acq_settings = {'duration': acq_secs,
                             'exp':      exp,
@@ -106,7 +115,7 @@ class Main(QtWidgets.QWidget):
 
             q = Queue.Queue()
 
-            WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression, exp)
+            WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression, exp, b, g)
             self.acquisition = ImageStack.GetNextFrame(q, acq_secs, exp, 0, 0)
             self.acquisition.start()
             WriteImages.start()

@@ -79,7 +79,7 @@ class GetNextFrame(threading.Thread):
 
 
 class ImageWriter(threading.Thread):
-    def __init__(self, q, parent, saveDir, compression_level, exp):
+    def __init__(self, q, parent, saveDir, compression_level, exp, brightness, gamma):
         threading.Thread.__init__(self)
         print " ----------- Starting Image Writer Process -------------"
         self.saveDir = saveDir
@@ -89,6 +89,16 @@ class ImageWriter(threading.Thread):
         self.q = q
         self.parent = parent
         self.exp = exp
+        self.brightness = brightness
+        self.gamma = gamma
+
+    def adjust_gamma(self, img):
+        if self.gamma == 0.0:
+            return img
+        invGamma = 1.0 / self.gamma
+        table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype(np.uint8)
+
+        return cv2.LUT(img, table)
 
     def run(self):
         print 'Running Image Writer process'
@@ -103,12 +113,16 @@ class ImageWriter(threading.Thread):
 
                     else:
                         img = np.reshape(camData, (2048, 2048))
-                        imgB = (img/255).astype('uint8')
+                        imgB = (img/255).astype(np.uint8)
 
                         try:
                             cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
                             cv2.resizeWindow('Preview Window', 1000, 1000)
-                            cv2.imshow('Preview Window', cv2.equalizeHist(imgB))
+
+                            imgB += self.brightness
+                            imgB = self.adjust_gamma(imgB)
+
+                            # cv2.imshow('Preview Window', cv2.equalizeHist(imgB))
                             if cv2.waitKey(1) & 0xFF == ord('q'):
                                 pass
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>754</width>
-    <height>553</height>
+    <width>745</width>
+    <height>552</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -599,7 +599,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <layout class="QVBoxLayout" name="verticalLayout_8">
      <property name="sizeConstraint">
       <enum>QLayout::SetFixedSize</enum>
@@ -623,7 +623,7 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="1" colspan="4">
+   <item row="5" column="1" colspan="4">
     <layout class="QVBoxLayout" name="verticalLayout_7">
      <property name="sizeConstraint">
       <enum>QLayout::SetFixedSize</enum>
@@ -650,7 +650,7 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="5" colspan="3">
+   <item row="5" column="5" colspan="3">
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <property name="spacing">
       <number>1</number>
@@ -687,6 +687,106 @@
      </item>
     </layout>
    </item>
+   <item row="4" column="0" colspan="8">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>90</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>Preview Options</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_10">
+      <item row="0" column="0">
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Brightness</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QSlider" name="sliderBrightness">
+          <property name="minimum">
+           <number>-255</number>
+          </property>
+          <property name="maximum">
+           <number>255</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="1">
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Gamma:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelGamma">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QSlider" name="sliderGamma">
+          <property name="minimum">
+           <number>-50</number>
+          </property>
+          <property name="maximum">
+           <number>50</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>
@@ -698,12 +798,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>134</x>
-     <y>473</y>
+     <x>155</x>
+     <y>376</y>
     </hint>
     <hint type="destinationlabel">
-     <x>75</x>
-     <y>452</y>
+     <x>91</x>
+     <y>355</y>
     </hint>
    </hints>
   </connection>
@@ -714,12 +814,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>75</x>
-     <y>452</y>
+     <x>91</x>
+     <y>355</y>
     </hint>
     <hint type="destinationlabel">
-     <x>111</x>
-     <y>473</y>
+     <x>132</x>
+     <y>376</y>
     </hint>
    </hints>
   </connection>
@@ -730,12 +830,44 @@
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>703</x>
-     <y>409</y>
+     <x>723</x>
+     <y>312</y>
     </hint>
     <hint type="destinationlabel">
-     <x>511</x>
-     <y>387</y>
+     <x>502</x>
+     <y>290</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnPreview</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>609</x>
+     <y>371</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>521</x>
+     <y>411</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sliderBrightness</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>label_18</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>461</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>202</x>
+     <y>436</y>
     </hint>
    </hints>
   </connection>

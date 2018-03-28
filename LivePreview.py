@@ -9,7 +9,7 @@ from Queue import Queue
 
 
 class Preview(threading.Thread):
-    def __init__(self, currFoc, first_expos):
+    def __init__(self, currFoc, first_expos, brightness, gamma):
         threading.Thread.__init__(self)
         print " ----------- Starting Preview thread ------------- "
         print "--> Initializing Camera Parameters"
@@ -26,7 +26,17 @@ class Preview(threading.Thread):
         self.hcam.setPropertyValue("binning", "1x1")
         self.hcam.setPropertyValue("readout_speed", 2)
         self.show = True
-        
+        self.brightness = brightness
+        self.gamma = gamma
+
+    def adjust_gamma(self, img):
+        if self.gamma == 0.0:
+            return img
+        invGamma = 1.0 / self.gamma
+        table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0,256)]).astype(np.uint8)
+
+        return cv2.LUT(img, table)
+
     def run(self):
         #global KillPreview
         self.hcam.startAcquisition()
@@ -52,7 +62,11 @@ class Preview(threading.Thread):
 #                start = time.clock()
                 img = np.reshape(grey_values, (2048, 2048))
                 
-                img = cv2.equalizeHist((img/255).astype(np.uint8))
+                # img = cv2.equalizeHist((img/255).astype(np.uint8))
+
+                img += self.brightness
+                img = self.adjust_gamma(img)
+
                 cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
                 cv2.resizeWindow('Preview Window', 1000, 1000)
                 cv2.imshow('Preview Window', img)
