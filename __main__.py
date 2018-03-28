@@ -41,7 +41,7 @@ class Main(QtWidgets.QWidget):
             self.__version__ = stdout.strip().decode()
             print(self.__version__)
         except:
-            self.__version__ = '385b2161804546204b358169104cf7578825d899'
+            self.__version__ = 'c5a5d0eee440755c50cb97ac276cdc47b5063b9d'
             print(self.__version__)
 
 
