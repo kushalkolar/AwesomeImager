@@ -10,7 +10,7 @@ import os
 import numpy as np
 import sys
 import json
-
+import datetime
 
 class GetNextFrame(threading.Thread):
     def __init__(self, q, acq_duration, expos_time, focal_start, focal_interval):
@@ -88,6 +88,7 @@ class ImageWriter(threading.Thread):
         self.compression_level = compression_level
         self.q = q
         self.parent = parent
+        self.exp = exp
 
     def run(self):
         print 'Running Image Writer process'
@@ -102,12 +103,12 @@ class ImageWriter(threading.Thread):
 
                     else:
                         img = np.reshape(camData, (2048, 2048))
-                        imgB = (img/256).astype('uint8')
+                        imgB = (img/255).astype('uint8')
 
                         try:
                             cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
                             cv2.resizeWindow('Preview Window', 1000, 1000)
-                            cv2.imshow('Preview Window', imgB)
+                            cv2.imshow('Preview Window', cv2.equalizeHist(imgB))
                             if cv2.waitKey(1) & 0xFF == ord('q'):
                                 pass
 
@@ -115,7 +116,9 @@ class ImageWriter(threading.Thread):
                             pass
 
                         self.tiff_writer.save(imgB, compress=self.compression_level)
-                        self.parent.set_frames_written_progressBar(self.imgNum, self.q.qsize())
+                        print 'qsize is: ' + str(self.q.qsize())
+                        print 'wrote ImgNum: ' + str(self.imgNum)
+#                        self.parent.set_frames_written_progressBar(self.imgNum, self.q.qsize())
                         
                         self.q.task_done()
                         self.imgNum += 1
@@ -130,17 +133,19 @@ class ImageWriter(threading.Thread):
         ymd = date.strftime('%Y%m%d')
         hms = date.strftime('%H%M%S')
 
-        metadata = {'exposure': exp,
+        metadata = {'exposure': self.exp,
                     'focal_length': None,
                     'source': 'AwesomeImager',
                     'version': self.parent.__version__,
                     'date': ymd,
                     'time': hms,
                     'stims': None}
-        if saveDir.endswith('.tiff'):
-            json_file = saveDir[:-5] + '.json'
-        elif saveDir.endswith('.tif'):
-            json_file = saveDir[:-4 + '.json']
+        
+        if self.saveDir.endswith('.tiff'):
+            json_file = self.saveDir[:-5] + '.json'
+        elif self.saveDir.endswith('.tif'):
+            json_file = self.saveDir[:-4 + '.json']
+            
         with open(json_file, 'w') as f:
             json.dump(metadata, f)
 

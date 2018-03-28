@@ -39,8 +39,10 @@ class Main(QtWidgets.QWidget):
             gitproc = Popen(['git', 'rev-parse', 'HEAD'], stdout=PIPE)
             (stdout, _) = gitproc.communicate()
             self.__version__ = stdout.strip().decode()
+            print(self.__version__)
         except:
-            self.__version__ = 'unknown'
+            self.__version__ = '385b2161804546204b358169104cf7578825d899'
+            print(self.__version__)
 
 
     def set_img_seq_save_path(self):
@@ -76,11 +78,13 @@ class Main(QtWidgets.QWidget):
 
     def acquire_slot(self, ev):
         if ev:
-            if (not self.ui.lineEdSavePathImgSeq.text().endswith('.tiff')) or \
+            if (not self.ui.lineEdSavePathImgSeq.text().endswith('.tiff')) and \
                     (not self.ui.lineEdSavePathImgSeq.text().endswith('.tif')):
 
                 QtWidgets.QMessageBox.warning(self, 'Invalid extension', 'Your must save your file with either an'
                                                                          ' .tiff or .tif extension!')
+                return
+            
             if hasattr(self, 'preview'):
                 if isinstance(self.preview, LivePreview.Preview):
                     self.preview_slot(False)

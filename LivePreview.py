@@ -51,6 +51,8 @@ class Preview(threading.Thread):
                 grey_values = frame[0].getData()
 #                start = time.clock()
                 img = np.reshape(grey_values, (2048, 2048))
+                
+                img = cv2.equalizeHist((img/255).astype(np.uint8))
                 cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
                 cv2.resizeWindow('Preview Window', 1000, 1000)
                 cv2.imshow('Preview Window', img)
@@ -58,8 +60,8 @@ class Preview(threading.Thread):
                     self.show = False
 #                stop = time.clock()
 #                print stop - start
-            except:
-                pass
+            except Exception as e:
+                print e
         cv2.destroyAllWindows()
         self.hcam.stopAcquisition()
         self.hcam.shutdown()
