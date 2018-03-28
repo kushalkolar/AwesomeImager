@@ -9,7 +9,7 @@ from Queue import Queue
 
 
 class Preview(threading.Thread):
-    def __init__(self, currFoc, first_expos, brightness, gamma):
+    def __init__(self, currFoc, first_expos, brightness, gamma, contrast):
         threading.Thread.__init__(self)
         print " ----------- Starting Preview thread ------------- "
         print "--> Initializing Camera Parameters"
@@ -28,6 +28,7 @@ class Preview(threading.Thread):
         self.show = True
         self.brightness = brightness
         self.gamma = gamma
+        self.contrast = contrast
 
     def adjust_gamma(self, img):
         if self.gamma == 0.0:
@@ -40,7 +41,7 @@ class Preview(threading.Thread):
     
     def adjust_contrast(self, img):
         if self.contrast == 0:
-            retun img
+            return img
         
         table = np.linspace(self.contrast, 255, num=256, dtype=np.uint8)
         

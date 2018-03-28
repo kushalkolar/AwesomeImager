@@ -2,6 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="79b0f1bc-1726-4a0c-bb88-49cec9445980" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LivePreview.py" afterPath="$PROJECT_DIR$/LivePreview.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/__main__.py" afterPath="$PROJECT_DIR$/__main__.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main_pytemplate.py" afterPath="$PROJECT_DIR$/main_pytemplate.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main_pytemplate.ui" afterPath="$PROJECT_DIR$/main_pytemplate.ui" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -34,8 +38,8 @@
           <file leaf-file-name="__main__.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/__main__.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="272">
-                  <caret line="34" column="72" lean-forward="true" selection-start-line="34" selection-start-column="72" selection-end-line="34" selection-end-column="72" />
+                <state relative-caret-position="357">
+                  <caret line="69" column="44" lean-forward="false" selection-start-line="69" selection-start-column="44" selection-end-line="69" selection-end-column="44" />
                   <folding>
                     <element signature="e#226#263#0" expanded="true" />
                   </folding>
@@ -69,7 +73,7 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="ImageStack.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="ImageStack.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/ImageStack.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="145">
@@ -81,11 +85,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="LivePreview.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="LivePreview.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/LivePreview.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="442">
-                  <caret line="66" column="0" lean-forward="false" selection-start-line="66" selection-start-column="0" selection-end-line="68" selection-end-column="0" />
+                <state relative-caret-position="629">
+                  <caret line="42" column="30" lean-forward="true" selection-start-line="42" selection-start-column="30" selection-end-line="42" selection-end-column="30" />
                   <folding />
                 </state>
               </provider>
@@ -128,9 +132,9 @@
         <option value="$PROJECT_DIR$/main_pytemplate.py" />
         <option value="$PROJECT_DIR$/hamamatsu_camera.py" />
         <option value="$PROJECT_DIR$/__init__.py" />
-        <option value="$PROJECT_DIR$/LivePreview.py" />
         <option value="$PROJECT_DIR$/ImageStack.py" />
         <option value="$PROJECT_DIR$/__main__.py" />
+        <option value="$PROJECT_DIR$/LivePreview.py" />
       </list>
     </option>
   </component>
@@ -738,14 +742,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/LivePreview.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="442">
-          <caret line="66" column="0" lean-forward="false" selection-start-line="66" selection-start-column="0" selection-end-line="68" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ImageStack.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="145">
@@ -758,11 +754,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/__main__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="34" column="72" lean-forward="true" selection-start-line="34" selection-start-column="72" selection-end-line="34" selection-end-column="72" />
+        <state relative-caret-position="357">
+          <caret line="69" column="44" lean-forward="false" selection-start-line="69" selection-start-column="44" selection-end-line="69" selection-end-column="44" />
           <folding>
             <element signature="e#226#263#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LivePreview.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="629">
+          <caret line="42" column="30" lean-forward="true" selection-start-line="42" selection-start-column="30" selection-end-line="42" selection-end-column="30" />
+          <folding />
         </state>
       </provider>
     </entry>

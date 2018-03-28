@@ -702,6 +702,47 @@
       <string>Preview Options</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_10">
+      <item row="0" column="1">
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Gamma:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelGamma">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QSlider" name="sliderGamma">
+          <property name="minimum">
+           <number>-50</number>
+          </property>
+          <property name="maximum">
+           <number>50</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item row="0" column="0">
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
@@ -743,14 +784,14 @@
         </item>
        </layout>
       </item>
-      <item row="0" column="1">
-       <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item row="0" column="2">
+       <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
-           <widget class="QLabel" name="label_15">
+           <widget class="QLabel" name="label_21">
             <property name="text">
-             <string>Gamma:</string>
+             <string>Contrast:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -758,7 +799,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="labelGamma">
+           <widget class="QLabel" name="labelGamma_2">
             <property name="text">
              <string>0</string>
             </property>
@@ -770,12 +811,12 @@
          </layout>
         </item>
         <item>
-         <widget class="QSlider" name="sliderGamma">
+         <widget class="QSlider" name="sliderContrast">
           <property name="minimum">
-           <number>-50</number>
+           <number>-255</number>
           </property>
           <property name="maximum">
-           <number>50</number>
+           <number>255</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -868,6 +909,22 @@
     <hint type="destinationlabel">
      <x>202</x>
      <y>436</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sliderContrast</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>labelGamma_2</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>692</x>
+     <y>460</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>637</x>
+     <y>446</y>
     </hint>
    </hints>
   </connection>

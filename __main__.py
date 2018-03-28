@@ -35,6 +35,7 @@ class Main(QtWidgets.QWidget):
         self.ui.sliderExposure.valueChanged.connect(self.update_preview)
         self.ui.sliderBrightness.valueChanged.connect(self.update_preview)
         self.ui.sliderGamma.valueChanged.connect(self.update_preview)
+        self.ui.sliderContrast.valueChanged.connect(self.update_preview())
 
         try:
             from subprocess import Popen, PIPE
@@ -66,10 +67,11 @@ class Main(QtWidgets.QWidget):
 
             b = self.ui.sliderBrightness.value()
             g = self.ui.sliderGamma.value() / 10.0
+            c = self.ui.sliderContrast.value()
 
             self.ui.labelGamma.setText(str(g))
 
-            self.preview = LivePreview.Preview(0, exp, b, g)
+            self.preview = LivePreview.Preview(0, exp, b, g, c)
             self.preview.start()
 
         else:
@@ -83,10 +85,12 @@ class Main(QtWidgets.QWidget):
         if isinstance(self.preview, LivePreview.Preview):
             b = self.ui.sliderBrightness.value()
             g = self.ui.sliderGamma.value() / 10.0
+            c = self.ui.sliderContrast.value()
             self.ui.labelGamma.setText(str(g))
             
             self.preview.brightness = b
             self.preview.gamma = g
+            self.preview.contrast = c
             
             self.preview.hcam.setPropertyValue("exposure_time", v/1000.0)
 
