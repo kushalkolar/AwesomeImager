@@ -95,6 +95,7 @@ class ImageWriter(threading.Thread):
     def adjust_gamma(self, img):
         if self.gamma == 0.0:
             return img
+        
         invGamma = 1.0 / self.gamma
         table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype(np.uint8)
 
@@ -119,7 +120,8 @@ class ImageWriter(threading.Thread):
                             cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
                             cv2.resizeWindow('Preview Window', 1000, 1000)
 
-                            imgB += self.brightness
+                            if self.brightness != 0:
+                                img += self.brightness
                             imgB = self.adjust_gamma(imgB)
 
                             # cv2.imshow('Preview Window', cv2.equalizeHist(imgB))

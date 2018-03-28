@@ -33,6 +33,8 @@ class Main(QtWidgets.QWidget):
         self.ui.btnDelStim.clicked.connect(self.del_stim)
 
         self.ui.sliderExposure.valueChanged.connect(self.update_preview)
+        self.ui.sliderBrightness.valueChanged.connect(self.update_preview)
+        self.ui.sliderGamma.valueChanged.connect(self.update_preview)
 
         try:
             from subprocess import Popen, PIPE
@@ -79,7 +81,13 @@ class Main(QtWidgets.QWidget):
         if not hasattr(self, 'preview'):
             return
         if isinstance(self.preview, LivePreview.Preview):
-            #            self.preview.expos_time.put(self.ui.sliderExposure.value() / 1000.0)
+            b = self.ui.sliderBrightness.value()
+            g = self.ui.sliderGamma.value() / 10.0
+            self.ui.labelGamma.setText(str(g))
+            
+            self.preview.brightness = b
+            self.preview.gamma = g
+            
             self.preview.hcam.setPropertyValue("exposure_time", v/1000.0)
 
     def acquire_slot(self, ev):

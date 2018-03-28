@@ -32,6 +32,7 @@ class Preview(threading.Thread):
     def adjust_gamma(self, img):
         if self.gamma == 0.0:
             return img
+        
         invGamma = 1.0 / self.gamma
         table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0,256)]).astype(np.uint8)
 
@@ -61,10 +62,14 @@ class Preview(threading.Thread):
                 grey_values = frame[0].getData()
 #                start = time.clock()
                 img = np.reshape(grey_values, (2048, 2048))
-                
+                img = (img/255).astype(np.uint8)
                 # img = cv2.equalizeHist((img/255).astype(np.uint8))
-
-                img += self.brightness
+                if self.brightness != 0:
+                    try:
+                        img += self.brightness
+                    except:
+                        pass
+                    
                 img = self.adjust_gamma(img)
 
                 cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
