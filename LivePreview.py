@@ -37,6 +37,14 @@ class Preview(threading.Thread):
         table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0,256)]).astype(np.uint8)
 
         return cv2.LUT(img, table)
+    
+    def adjust_contrast(self, img):
+        if self.contrast == 0:
+            retun img
+        
+        table = np.linspace(self.contrast, 255, num=256, dtype=np.uint8)
+        
+        return cv2.LUT(img, table).astype(np.uint8)
 
     def run(self):
         #global KillPreview
@@ -66,11 +74,12 @@ class Preview(threading.Thread):
                 # img = cv2.equalizeHist((img/255).astype(np.uint8))
                 if self.brightness != 0:
                     try:
-                        img += self.brightness
+                        np.add(img, self.brightness, img)
                     except:
                         pass
                     
                 img = self.adjust_gamma(img)
+                img = self.adjust_contrast(img)
 
                 cv2.namedWindow('Preview Window', cv2.WINDOW_NORMAL)
                 cv2.resizeWindow('Preview Window', 1000, 1000)
