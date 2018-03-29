@@ -58,7 +58,7 @@ class GetNextFrame(threading.Thread):
                 # <<** might be possible to lower this time because of small stack intervals 
                 # and use larger wait times only when beginning the next stack!! ** >>
 
-                [frame, dims] = self.hcam.getFrames()
+                [frame, dim] = self.hcam.getFrames()
                 print 'Read frame num ' + str(fNum)
                 grey_values = frame[0].getData()
                 self.q.put(grey_values)
@@ -109,16 +109,16 @@ class ImageWriter(threading.Thread):
         hist.vb.enableAutoRange(hist.vb.YAxis, False)
         self.iv.show()
         
-    def display(self, image):
+    def lut_8b(self, image):
         image.clip(self.levels[0], self.levels[1], out=image)
         image -= self.levels[0]
         np.floor_divide(image, (self.levels[1] - self.levels[0] + 1) / 256,
                         out=image, casting='unsafe')
         return image.astype(np.uint8)
-    
+
     def set_lut(self, image) :
-        lut = np.arange(2**16, dtype='uint16')
-        lut = self.display(lut)
+        lut = np.arange(65536, dtype=np.uint16)
+        lut = self.lut_8b(lut)
         return np.take(lut, image).astype(np.uint8)
 
     def run(self):
@@ -152,7 +152,7 @@ class ImageWriter(threading.Thread):
             except KeyboardInterrupt:
                 break
         self.tiff_writer.close()
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
         self.parent.acquire_slot(False)
 
         date = datetime.datetime.fromtimestamp(time.time())
@@ -160,7 +160,6 @@ class ImageWriter(threading.Thread):
         hms = date.strftime('%H%M%S')
 
         metadata = {'exposure': self.exp,
-                    'focal_length': None,
                     'source': 'AwesomeImager',
                     'version': self.parent.__version__,
                     'date': ymd,
@@ -170,7 +169,7 @@ class ImageWriter(threading.Thread):
         if self.saveDir.endswith('.tiff'):
             json_file = self.saveDir[:-5] + '.json'
         elif self.saveDir.endswith('.tif'):
-            json_file = self.saveDir[:-4 + '.json']
+            json_file = self.saveDir[:-4] + '.json'
             
         with open(json_file, 'w') as f:
             json.dump(metadata, f)

@@ -19,6 +19,8 @@ import ImageStack
 from functools import partial
 import Queue
 import numpy as np
+import CameraInterfaces
+
 
 class Main(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -62,28 +64,29 @@ class Main(QtWidgets.QWidget):
         print(ev)
         if ev:
             exp = self.ui.sliderExposure.value() / 1000.0
-
-            self.preview = LivePreview.Preview(0, exp)
+            params = {'exposure':   exp}
+            self.preview = CameraInterfaces.PreviewHamamatsu(params)
+            # self.preview = LivePreview.Preview(0, exp)
             self.preview.start()
 
         else:
+            assert isinstance(self.preview, CameraInterfaces.PreviewHamamatsu)
             self.levels = self.preview.levels
             print(self.levels)
-            
             mi = np.uint16(self.levels[0])
             mx = np.uint16(self.levels[1])
             self.levels = (mi, mx)
             print(type(self.levels[1]))
-            self.preview.endPreview()
-            self.preview.iv.close()
+            self.preview.end()
+            # self.preview.iv.close()
             self.preview = None
             print('closing preview')
 
     def update_preview(self, v):
         if not hasattr(self, 'preview'):
             return
-        if isinstance(self.preview, LivePreview.Preview):            
-            self.preview.hcam.setPropertyValue("exposure_time", v/1000.0)
+        if isinstance(self.preview, CameraInterfaces.PreviewHamamatsu):
+            self.preview.exposure = v/1000.0
 
     def acquire_slot(self, ev):
         if ev:
