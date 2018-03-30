@@ -92,7 +92,7 @@ class BaseWriter(threading.Thread):
     def run(self):
         pass
 
-    def lut_8bit(self, image):
+    def _lut_8bit(self, image):
         image.clip(self.levels[0], self.levels[1], out=image)
         image -= self.levels[0]
         np.floor_divide(image, (self.levels[1] - self.levels[0] + 1) / 256,
@@ -101,7 +101,7 @@ class BaseWriter(threading.Thread):
 
     def convert_to_8bit(self, image):
         lut = np.arange(65536, dtype=np.uint16)
-        lut = self.lut_8bit(lut)
+        lut = self._lut_8bit(lut)
         return np.take(lut, image).astype(np.uint8)
 
     def save_metadata(self, filename):
@@ -174,10 +174,13 @@ class BaseHamamatsu(BaseCamera):
 
 
 class BaseOpenCV(BaseCamera):
-    """Base class for OpenCV compatible cameras"""
+    """
+    Adapted from Daniel Dondorp
+    Base class for OpenCV compatible cameras
+    """
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, camera=0, framerate=30, shape=(7680, 4320), brightness=0, exposure=-5.0):
+    def __init__(self, camera=0, framerate=30, shape=(7680, 4320), exposure=-5.0):
         """
         :param camera: Which connected camera to use.
         :param framerate:
@@ -237,28 +240,28 @@ class BaseOpenCV(BaseCamera):
         return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     def end(self):
-        self.alive = False
+        self.cap.release()
 
 
-class PreviewOpenCV(BaseOpenCV):
+class PreviewOpenCV(BaseOpenCV, BasePreview):
     def __init__(self):
         BaseOpenCV.__init__(self)
+        BasePreview.__init__(self)
+        super(PreviewOpenCV, self).__init__(BasePreview)
 
     def run(self):
         print("Preview Starting")
-
-        #        cap.set(cv2.CAP_PROP_FPS, self.framerate)
         self.alive = True
 
         frames = 0
         start_time = time.time()
-        while self.alive == True:
+
+        while self._alive:
 
             ret, frame = self.cap.read()
 
-            if ret == True:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                cv2.imshow('preview', frame)
+            if ret:
+                self.update_preview(frame)
 
             frames += 1
             if frames == 10:
@@ -268,12 +271,11 @@ class PreviewOpenCV(BaseOpenCV):
                 sys.stdout.write("\r fps = " + str(fps) + " time for 10 frames: " + str(total_time))
                 frames = 0
                 start_time = time.time()
+        self.iv.close()
+        super(PreviewOpenCV, self).end()
 
-        else:
-            self.alive = False
-            cv2.destroyWindow("preview")
-            #            cv2.destroyAllWindows()
-
+    def end(self):
+        self._alive = False
 
 class AcquireOpenCV(BaseOpenCV):
     def __init__(self):
@@ -293,11 +295,11 @@ class AcquireOpenCV(BaseOpenCV):
         end_time = start_time
         self.alive = True
         fc = 0
-        while (end_time - start_time) < duration and self.alive == True:
+        while (end_time - start_time) < duration and self.alive:
 
             ret, frame = self.cap.read()
 
-            if ret == True:
+            if ret:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 out.write(frame)
                 fc += 1
@@ -338,13 +340,13 @@ class PreviewHamamatsu(BaseHamamatsu, BasePreview):
             except Exception as e:
                 print(e)
 
+        self.iv.close()
+        super(PreviewHamamatsu, self).end()
         # self.hcam.stopAcquisition()
         # self.hcam.shutdown()
 
     def end(self):
         self._show_preview = False
-        self.iv.close()
-        super(PreviewHamamatsu, self).end()
 
 
 class AcquireHamamatsu(BaseHamamatsu):
@@ -377,21 +379,22 @@ class AcquireHamamatsu(BaseHamamatsu):
                 frame_num += 1
 
             except KeyboardInterrupt:
-                self.acquire = False
+                self.end()
                 raise KeyboardInterrupt
 
             except Exception as e:
                 print('Something went wrong during acquisition of frame num: ' + str(frame_num) + '\n' + str(e))
 
         self.q.put('done')
+        super(AcquireHamamatsu, self).end()
 
     def end(self):
         self._acquire = False
-        super(AcquireHamamatsu, self).end()
 
 
+# TODO: TRY MULTIPROCESSING HERE SINCE I'M ONLY SENDING A NUMPY ARRAY AND NOT HCAM OBJECT !!!!!!!!!!
 class WriterHamamatsu(BaseWriter, BasePreview, threading.Thread):
-    """Use for both Hamamatsu AND OpenCV Cameras"""
+    """Use for Hamamatsu Cameras"""
 
     def __init__(self, threading_queue, filename, compression_level, levels, metadata):
         threading.Thread.__init__(self)

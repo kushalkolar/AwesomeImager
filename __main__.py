@@ -47,7 +47,6 @@ class Main(QtWidgets.QWidget):
             self.__version__ = '4107ff58a0c3d4d5d3c15c3d6a69f8798a20e3de'
             print(self.__version__)
 
-
     def set_img_seq_save_path(self):
         path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Image Sequence as', '', '(*.tiff)')
         if path == '':
@@ -136,7 +135,7 @@ class Main(QtWidgets.QWidget):
 
     def set_frames_written_progressBar(self, fnum, qsize):
         self.ui.progressBarAcquisition.setValue(fnum)
-        self.ui.labelQsize.setText(str(qsize))
+        self.ui.labelQSize.setText(str(qsize))
 
     def add_stim(self):
         pass
