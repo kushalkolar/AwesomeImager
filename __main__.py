@@ -65,22 +65,20 @@ class Main(QtWidgets.QWidget):
             exp = self.ui.sliderExposure.value() / 1000.0
             params = {'exposure': exp}
             self.preview = CameraInterfaces.PreviewHamamatsu(**params)
-            # self.preview = LivePreview.Preview(0, exp)
             self.preview.start()
 
         else:
-            assert isinstance(self.preview, CameraInterfaces.PreviewHamamatsu)
             self.levels = self.preview.levels
-            print(self.levels)
             mi = np.uint16(self.levels[0])
             mx = np.uint16(self.levels[1])
             self.levels = (mi, mx)
-            print(type(self.levels[1]))
+
             self.preview.end()
+
             while self.preview.camera_open:
                 time.sleep(0.01)
+
             self.preview = None
-            print('closing preview')
 
     def update_preview(self, v):
         if not hasattr(self, 'preview'):
@@ -120,7 +118,6 @@ class Main(QtWidgets.QWidget):
             self.ui.btnPreview.setDisabled(True)
             self.ui.btnAcquire.setText('Abort')
 
-            # q = Queue.Queue()
             q = Queue()
 
             writer = CameraInterfaces.WriterHamamatsu(q, filename, compression, self.levels, params)
@@ -128,11 +125,6 @@ class Main(QtWidgets.QWidget):
 
             writer.start()
             acquisition.start()
-
-            # WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression, exp, self.levels)
-            # self.acquisition = ImageStack.GetNextFrame(q, duration, exp, 0, 0)
-            # self.acquisition.start()
-            # WriteImages.start()
 
         else:
             try:
@@ -142,7 +134,6 @@ class Main(QtWidgets.QWidget):
                                                                         'in the queue', QtWidgets.QMessageBox.Abort,
                                                   QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Abort:
                     writer.end()
-                    # self.acquisition.end_acquisition()
             except:
                 pass
 

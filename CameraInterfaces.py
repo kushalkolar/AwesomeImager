@@ -152,7 +152,7 @@ class BaseHamamatsu(BaseCamera):
 
         self.hcam = hc.HamamatsuCameraMR(0)
         self.camera_open = True
-        # Set camera parameters.
+
         cam_offset = 100
         cam_x = 2048
         cam_y = 2048
@@ -344,7 +344,6 @@ class AcquireOpenCV(BaseOpenCV):
 class PreviewHamamatsu(BaseHamamatsu, BasePreview):
     def __init__(self, **kwargs):
         BaseHamamatsu.__init__(self, **kwargs)
-        # super(BaseHamamatsu, self).__init__()
         BasePreview.__init__(self)
         self._show_preview = True
 
@@ -393,9 +392,6 @@ class AcquireHamamatsu(BaseHamamatsu):
 
                 # <<** might be possible to lower this time because of small stack intervals
                 # and use larger wait times only when beginning the next stack!! ** >>
-
-                # [frame, dim] = self.hcam.getFrames()
-                # grey_values = frame[0].getData()
 
                 self.q.put(self.get_grey_values())
                 print('Read frame num ' + str(frame_num))
@@ -451,7 +447,6 @@ class WriterHamamatsu(BaseWriter, BasePreview):
                     self.tiff_writer.save(img, compress=self.comp_lev)
                     print('qsize is: ' + str(self.q.qsize()))
                     print('wrote ImgNum: ' + str(img_num))
-                    # self.parent.set_frames_written_progressBar(self.imgNum, self.q.qsize())
 
                     self.q.task_done()
                     img_num += 1
