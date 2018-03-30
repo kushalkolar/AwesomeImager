@@ -458,7 +458,7 @@ class WriterHamamatsu(BaseWriter, BasePreview):
 
                 except KeyboardInterrupt:
                     break
-                    
+
         self.tiff_writer.close()
         self.save_metadata(self.filename)
 
