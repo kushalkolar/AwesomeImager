@@ -14,8 +14,6 @@ from __future__ import print_function
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from main_pytemplate import Ui_main
-import LivePreview
-import ImageStack
 from functools import partial
 from Queue import Queue
 import numpy as np
