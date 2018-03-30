@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="79b0f1bc-1726-4a0c-bb88-49cec9445980" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CameraInterfaces.py" afterPath="$PROJECT_DIR$/CameraInterfaces.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/__main__.py" afterPath="$PROJECT_DIR$/__main__.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -108,10 +106,10 @@
           <file leaf-file-name="CameraInterfaces.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/CameraInterfaces.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="518">
-                  <caret line="393" column="0" lean-forward="true" selection-start-line="393" selection-start-column="0" selection-end-line="393" selection-end-column="0" />
+                <state relative-caret-position="6128">
+                  <caret line="407" column="0" lean-forward="true" selection-start-line="407" selection-start-column="0" selection-end-line="407" selection-end-column="0" />
                   <folding>
-                    <element signature="e#235#272#0" expanded="true" />
+                    <element signature="e#352#389#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -891,10 +889,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/CameraInterfaces.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="518">
-          <caret line="393" column="0" lean-forward="true" selection-start-line="393" selection-start-column="0" selection-end-line="393" selection-end-column="0" />
+        <state relative-caret-position="6128">
+          <caret line="407" column="0" lean-forward="true" selection-start-line="407" selection-start-column="0" selection-end-line="407" selection-end-column="0" />
           <folding>
-            <element signature="e#235#272#0" expanded="true" />
+            <element signature="e#352#389#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -9,6 +9,9 @@ Chatzigeorgiou Group
 Sars International Centre for Marine Molecular Biology
 
 GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+
+Just a bunch of generalized classed for image acquisition, preview, and writing from Hamamatsu and OpenCV cameras.
+
 """
 
 from __future__ import print_function
@@ -244,6 +247,9 @@ class BaseOpenCV(BaseCamera):
 
 
 class PreviewOpenCV(BaseOpenCV, BasePreview):
+    """
+    Adapted from Daniel Dondorp
+    """
     def __init__(self):
         BaseOpenCV.__init__(self)
         BasePreview.__init__(self)
@@ -277,7 +283,11 @@ class PreviewOpenCV(BaseOpenCV, BasePreview):
     def end(self):
         self._alive = False
 
+
 class AcquireOpenCV(BaseOpenCV):
+    """
+    Adapted from Daniel Dondorp
+    """
     def __init__(self):
         BaseOpenCV.__init__(self)
 
@@ -393,11 +403,10 @@ class AcquireHamamatsu(BaseHamamatsu):
 
 
 # TODO: TRY MULTIPROCESSING HERE SINCE I'M ONLY SENDING A NUMPY ARRAY AND NOT HCAM OBJECT !!!!!!!!!!
-class WriterHamamatsu(BaseWriter, BasePreview, threading.Thread):
+class WriterHamamatsu(BaseWriter, BasePreview):
     """Use for Hamamatsu Cameras"""
 
     def __init__(self, threading_queue, filename, compression_level, levels, metadata):
-        threading.Thread.__init__(self)
         BaseWriter.__init__(self, threading_queue=threading_queue, filename=filename,
                             compression_level=compression_level, levels=levels, metadata=metadata)
         BasePreview.__init__(self)
