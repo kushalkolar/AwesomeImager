@@ -27,6 +27,7 @@ import time
 import datetime
 import json
 import tifffile
+import multiprocessing
 
 
 class BaseCamera(threading.Thread):
@@ -88,11 +89,20 @@ class BaseWriter(threading.Thread):
         self.comp_lev = compression_level
         self.levels = levels
         self.metadata = metadata
+        if 'framerate' not in self.metadata.keys():
+            try:
+                self.metadata['framerate'] = 1/self.metadata['exposure']
+            except KeyError:
+                raise KeyError('Exposure or Framerate must be specified to save as metadata')
 
         self.tiff_writer = tifffile.TiffWriter(filename, bigtiff=True, append=True)
 
     @abc.abstractmethod
     def run(self):
+        pass
+
+    @abc.abstractmethod
+    def end(self):
         pass
 
     def _lut_8bit(self, image):
@@ -117,7 +127,9 @@ class BaseWriter(threading.Thread):
                 'version':      self.metadata['version'],
                 'date':         ymd,
                 'time':         hms,
-                'stims':        self.metadata['stims']}
+                'stims':        self.metadata['stims'],
+                'level_min':    int(self.metadata['levels'][0]),
+                'level_max':    int(self.metadata['levels'][1])}
 
         if filename.endswith('.tiff'):
             json_file = filename[:-5] + '.json'
@@ -133,12 +145,13 @@ class BaseHamamatsu(BaseCamera):
     """Base class for Hamamatsu cameras"""
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, params):
+    def __init__(self, **kwargs):
         BaseCamera.__init__(self)
-        if 'exposure' not in params.keys():
+        if 'exposure' not in kwargs.keys():
             raise KeyError('No exposure value specified')
 
         self.hcam = hc.HamamatsuCameraMR(0)
+        self.camera_open = True
         # Set camera parameters.
         cam_offset = 100
         cam_x = 2048
@@ -148,7 +161,7 @@ class BaseHamamatsu(BaseCamera):
         self.hcam.setPropertyValue("subarray_vsize", cam_y)
         self.hcam.setPropertyValue("binning", "1x1")
         self.hcam.setPropertyValue("readout_speed", 2)
-        self.exposure = params['exposure']
+        self.exposure = kwargs['exposure']
 
     @property
     def exposure(self):
@@ -174,6 +187,7 @@ class BaseHamamatsu(BaseCamera):
     def end(self):
         self.hcam.stopAcquisition()
         self.hcam.shutdown()
+        self.camera_open = False
 
 
 class BaseOpenCV(BaseCamera):
@@ -328,9 +342,9 @@ class AcquireOpenCV(BaseOpenCV):
 
 
 class PreviewHamamatsu(BaseHamamatsu, BasePreview):
-    def __init__(self, params):
-        BaseHamamatsu.__init__(self, params)
-        super(PreviewHamamatsu, self).__init__(BaseHamamatsu)
+    def __init__(self, **kwargs):
+        BaseHamamatsu.__init__(self, **kwargs)
+        # super(BaseHamamatsu, self).__init__()
         BasePreview.__init__(self)
         self._show_preview = True
 
@@ -350,18 +364,17 @@ class PreviewHamamatsu(BaseHamamatsu, BasePreview):
             except Exception as e:
                 print(e)
 
-        self.iv.close()
         super(PreviewHamamatsu, self).end()
-        # self.hcam.stopAcquisition()
-        # self.hcam.shutdown()
 
     def end(self):
         self._show_preview = False
+        self.iv.close()
 
 
 class AcquireHamamatsu(BaseHamamatsu):
-    def __init__(self, params, threading_queue, duration):
-        BaseHamamatsu.__init__(self, params)
+    def __init__(self, parameters, threading_queue, duration):
+        kwargs = parameters
+        BaseHamamatsu.__init__(self, **kwargs)
         self.q = threading_queue
         self.duration = duration
         self._acquire = True
@@ -370,7 +383,7 @@ class AcquireHamamatsu(BaseHamamatsu):
         frame_num = 0
         self.hcam.startAcquisition()
         self.stop_time = time.time() + self.duration
-        while time.time() < self.stop_time() and self._acquire:
+        while (time.time() < self.stop_time) and self._acquire:
             try:
                 # self.lens.focalpower( <<appropriate focal power>> )
 
@@ -411,10 +424,11 @@ class WriterHamamatsu(BaseWriter, BasePreview):
                             compression_level=compression_level, levels=levels, metadata=metadata)
         BasePreview.__init__(self)
         self.iv.setLevels(levels[0], levels[1])
+        self.write = True
 
     def run(self):
         img_num = 0
-        while True:
+        while self.write:
             if not self.q.not_empty:
                 continue
 
@@ -444,6 +458,9 @@ class WriterHamamatsu(BaseWriter, BasePreview):
 
                 except KeyboardInterrupt:
                     break
-
+                    
         self.tiff_writer.close()
         self.save_metadata(self.filename)
+
+    def end(self):
+        self.write = False

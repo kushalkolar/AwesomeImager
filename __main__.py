@@ -17,9 +17,11 @@ from main_pytemplate import Ui_main
 import LivePreview
 import ImageStack
 from functools import partial
-import Queue
+from Queue import Queue
 import numpy as np
 import CameraInterfaces
+import time
+# from multiprocessing import Queue
 
 
 class Main(QtWidgets.QWidget):
@@ -28,13 +30,13 @@ class Main(QtWidgets.QWidget):
         self.ui = Ui_main()
         self.ui.setupUi(self)
 
-        self.ui.sliderFocalLength.valueChanged.connect(lambda v: self.ui.spinBoxCurrFocal.setValue(v/100.0))
+        self.ui.sliderFocalLength.valueChanged.connect(lambda v: self.ui.spinBoxCurrFocal.setValue(v / 100.0))
         self.ui.btnSavePathImgSeq.clicked.connect(self.set_img_seq_save_path)
         self.ui.btnPreview.clicked.connect(self.preview_slot)
         self.ui.btnAcquire.clicked.connect(self.acquire_slot)
         self.ui.btnAddStim.clicked.connect(self.add_stim)
         self.ui.btnDelStim.clicked.connect(self.del_stim)
-        
+
         self.ui.sliderExposure.valueChanged.connect(self.update_preview)
 
         try:
@@ -63,8 +65,8 @@ class Main(QtWidgets.QWidget):
         print(ev)
         if ev:
             exp = self.ui.sliderExposure.value() / 1000.0
-            params = {'exposure':   exp}
-            self.preview = CameraInterfaces.PreviewHamamatsu(params)
+            params = {'exposure': exp}
+            self.preview = CameraInterfaces.PreviewHamamatsu(**params)
             # self.preview = LivePreview.Preview(0, exp)
             self.preview.start()
 
@@ -77,7 +79,8 @@ class Main(QtWidgets.QWidget):
             self.levels = (mi, mx)
             print(type(self.levels[1]))
             self.preview.end()
-            # self.preview.iv.close()
+            while self.preview.camera_open:
+                time.sleep(0.01)
             self.preview = None
             print('closing preview')
 
@@ -85,53 +88,69 @@ class Main(QtWidgets.QWidget):
         if not hasattr(self, 'preview'):
             return
         if isinstance(self.preview, CameraInterfaces.PreviewHamamatsu):
-            self.preview.exposure = v/1000.0
+            self.preview.exposure = v / 1000.0
 
     def acquire_slot(self, ev):
         if ev:
             if (not self.ui.lineEdSavePathImgSeq.text().endswith('.tiff')) and \
                     (not self.ui.lineEdSavePathImgSeq.text().endswith('.tif')):
-
                 QtWidgets.QMessageBox.warning(self, 'Invalid extension', 'Your must save your file with either an'
                                                                          ' .tiff or .tif extension!')
+                self.ui.btnAcquire.setChecked(False)
                 return
-            
+
             if hasattr(self, 'preview'):
-                if isinstance(self.preview, LivePreview.Preview):
+                if isinstance(self.preview, CameraInterfaces.PreviewHamamatsu):
                     self.preview_slot(False)
 
             m = self.ui.spinBoxMinutesAcquisition.value()
             ms = m * 60
             s = self.ui.spinBoxSecondsAcquisition.value()
-            acq_secs = s + ms
+            duration = s + ms
             exp = self.ui.sliderExposure.value() / 1000.0
-
+            filename = self.ui.lineEdSavePathImgSeq.text()
             compression = self.ui.sliderCompressionLevel.value()
-            acq_settings = {'duration': acq_secs,
-                            'exp':      exp,
-                            'stims':    {},
-                            }
 
-            self.ui.progressBarWriter.setMaximum(int((acq_secs * 1000) / self.ui.sliderExposure.value()) - 1)
+            params = {'exposure': exp,
+                      'compression': compression,
+                      'levels': self.levels,
+                      'stims': {},
+                      'version': self.__version__
+                      }
+
+            self.ui.progressBarWriter.setMaximum(int((duration * 1000) / self.ui.sliderExposure.value()) - 1)
             self.ui.btnPreview.setDisabled(True)
             self.ui.btnAcquire.setText('Abort')
 
-            q = Queue.Queue()
+            # q = Queue.Queue()
+            q = Queue()
 
-            WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression, exp, self.levels)
-            self.acquisition = ImageStack.GetNextFrame(q, acq_secs, exp, 0, 0)
-            self.acquisition.start()
-            WriteImages.start()
+            writer = CameraInterfaces.WriterHamamatsu(q, filename, compression, self.levels, params)
+            acquisition = CameraInterfaces.AcquireHamamatsu(params, q, duration)
+
+            writer.start()
+            acquisition.start()
+
+            # WriteImages = ImageStack.ImageWriter(q, self, self.ui.lineEdSavePathImgSeq.text(), compression, exp, self.levels)
+            # self.acquisition = ImageStack.GetNextFrame(q, duration, exp, 0, 0)
+            # self.acquisition.start()
+            # WriteImages.start()
 
         else:
             try:
-                self.acquisition.end_acquisition()
+                acquisition.end()
+                if QtWidgets.QMessageBox.question(self, 'Stop writer?', 'Would you like to abort the writer as well?\n'
+                                                                        'You will loose any frames that are currently '
+                                                                        'in the queue', QtWidgets.QMessageBox.Abort,
+                                                  QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Abort:
+                    writer.end()
+                    # self.acquisition.end_acquisition()
             except:
                 pass
 
-            self.ui.btnPreview.setEnabled(True)
-            self.ui.btnAcquire.setText('Acquire')
-            self.ui.btnAcquire.setChecked(False)
+        self.ui.btnPreview.setEnabled(True)
+        self.ui.btnAcquire.setText('Acquire')
+        self.ui.btnAcquire.setChecked(False)
 
     def set_frames_written_progressBar(self, fnum, qsize):
         self.ui.progressBarAcquisition.setValue(fnum)
@@ -148,6 +167,7 @@ class Main(QtWidgets.QWidget):
 
     def import_config(self):
         pass
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
