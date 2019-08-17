@@ -28,7 +28,8 @@ import datetime
 import json
 import tifffile
 import multiprocessing
-
+import traceback
+import pickle
 
 class BaseCamera(threading.Thread):
     """Base class for all types of cameras"""
@@ -99,7 +100,16 @@ class ImageFuncs:
         LUT = np.arange(2**src_depth, dtype=depth)
         LUT.clip(levels[0], levels[1], out=LUT)
         LUT -= levels[0]
+        print("LUT is: ")
+        print(LUT)
+        print("levels is: ")
+        print(levels)
+        print("denominator is")
+        print((levels[1] - levels[0] + 1) / 256)
+#        pickle.dump(LUT, open('F:\LUT.pickle', 'wb'))
+#        pickle.dump(levels, open('F:\levels.pickle', 'wb'))
         np.floor_divide(LUT, (levels[1] - levels[0] + 1) / 256, out=LUT, casting='unsafe')
+            
 
         return LUT.astype(np.uint8)
 
@@ -204,7 +214,7 @@ class BaseHamamatsu(BaseCamera):
         self.hcam.setPropertyValue("defect_correct_mode", "OFF")
         self.hcam.setPropertyValue("subarray_hsize", cam_x)
         self.hcam.setPropertyValue("subarray_vsize", cam_y)
-        self.hcam.setPropertyValue("binning", "1x1")
+        self.hcam.setPropertyValue("binning", "2x2")
         self.hcam.setPropertyValue("readout_speed", 2)
         self.exposure = kwargs['exposure']
 
@@ -397,7 +407,7 @@ class PreviewHamamatsu(BaseHamamatsu, BasePreview):
         first_img = True
         while self._show_preview:
             try:
-                img = np.reshape(self.get_grey_values(), (2048, 2048))
+                img = np.reshape(self.get_grey_values(), (1024, 1024))
                 self.iv.setImage(img, autoRange=False, autoLevels=False, autoHistogramRange=False)
 
                 if first_img:
@@ -439,7 +449,7 @@ class AcquireHamamatsu(BaseHamamatsu):
                 # and use larger wait times only when beginning the next stack!! ** >>
 
                 self.q.put(self.get_grey_values())
-                print('Read frame num ' + str(frame_num))
+                print('Read frame num ' + str(frame_num) + '\r')
                 frame_num += 1
 
             except KeyboardInterrupt:
@@ -447,7 +457,10 @@ class AcquireHamamatsu(BaseHamamatsu):
                 raise KeyboardInterrupt
 
             except Exception as e:
-                print('Something went wrong during acquisition of frame num: ' + str(frame_num) + '\n' + str(e))
+                if type(e) is not IndexError:
+                    print('Something went wrong during ' +
+                    'acquisition of frame num: ' + str(frame_num) 
+                    + '\n' + str(traceback.format_exc()))
 
         self.q.put('done')
         super(AcquireHamamatsu, self).end()
@@ -482,17 +495,17 @@ class WriterHamamatsu(BaseWriter, BasePreview):
 
             else:
                 try:
-                    img = np.reshape(cam_data, (2048, 2048))
+                    img = np.reshape(cam_data, (1024, 1024))
                     try:
                         self.iv.setImage(img, autoRange=False, autoLevels=False, autoHistogramRange=False)
                     except Exception as e:
                         print('Error displaying an image: ' + str(e))
 
-                    img = ImageFuncs.apply_8bit_LUT(img, self.LUT_8bit)
+                    #img = ImageFuncs.apply_8bit_LUT(img, self.LUT_8bit)
 
                     self.tiff_writer.save(img, compress=self.comp_lev)
-                    print('qsize is: ' + str(self.q.qsize()))
-                    print('wrote ImgNum: ' + str(img_num))
+                    print('qsize is: ' + str(self.q.qsize()) + '\r')
+                    print('wrote ImgNum: ' + str(img_num)  + '\r')
 
                     self.q.task_done()
                     img_num += 1

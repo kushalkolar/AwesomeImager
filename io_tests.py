@@ -8,7 +8,7 @@ import hamamatsu_camera as hc
 
 #print "camera 0 model:", hc.getModelInfo(0)
 
-hcam = hc.HamamatsuCameraMR(0)
+hcam = hc.HamamatsuCameraMR(camera_id=0)
 
 # Set camera parameters.
 cam_offset = 100
@@ -23,7 +23,7 @@ hcam.setPropertyValue("readout_speed", 2)
 
 # Test image streaming using numpy.
 if 1:
-    bin_fp = open("D:\\Kushal\\test.bin", "wb")
+    bin_fp = open("D:\\test.bin", "wb")
     hcam.startAcquisition()
     for i in range(2):
 

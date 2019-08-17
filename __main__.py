@@ -15,7 +15,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from main_pytemplate import Ui_main
 from functools import partial
-from Queue import Queue
+from Queue import Queue 
 import numpy as np
 import CameraInterfaces
 import time
@@ -46,7 +46,9 @@ class Main(QtWidgets.QWidget):
         except:
             self.__version__ = '4107ff58a0c3d4d5d3c15c3d6a69f8798a20e3de'
             print(self.__version__)
-
+        
+        self.ui.btnAcquire.setDisabled(True)
+        
     def set_img_seq_save_path(self):
         path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Image Sequence as', '', '(*.tiff)')
         if path == '':
@@ -72,6 +74,14 @@ class Main(QtWidgets.QWidget):
             mi = np.uint16(self.levels[0])
             mx = np.uint16(self.levels[1])
             self.levels = (mi, mx)
+            levels = self.levels
+            if ((levels[1] - levels[0] + 1) / 256) == 0:
+                QtWidgets.QMessageBox.warning(self, 'Invalid min max', 
+                'Your min max values are\n' + str(levels[0]) + ', ' 
+                + str(levels[1]) +'\nThey must have a range greater than 256')
+                self.ui.btnAcquire.setDisabled(True)
+            else:
+                self.ui.btnAcquire.setEnabled(True)
 
             self.preview.end()
 
