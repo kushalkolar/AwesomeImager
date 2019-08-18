@@ -4,4 +4,4 @@ A simple GUI for acquiring image sequences from Hamamatsu Orca Flash CMOS camera
 
 ![gui](https://github.com/kushalkolar/AwesomeImager/raw/master/gui_1.PNG)
 
-![gui](https://github.com/kushalkolar/AwesomeImager/raw/master/gui_2.PNG)
+![gui](https://github.com/kushalkolar/AwesomeImager/raw/master/gui_2.png)
